@@ -1,0 +1,5 @@
+Microsoft$Virus:Win32/Parite.B
+Microsoft$Trojan:Win32/Skeeyah.A!rfn
+Microsoft$Backdoor:Win32/Fynloski.A
+Microsoft$Backdoor:MSIL/Bladabindi.AJ
+Microsoft$Virus:Win32/Virut.K

@@ -1,5 +1,8 @@
+import sys
 import LRU
 import numpy as np
+import parser.vtFamily
+import parser.FP
 
 
 def computeFPScoreMatrix(fpMatrix1, fpMatrix2):
@@ -24,7 +27,7 @@ class LRUPFCache:
 		self.size = 0
 		self.fpMatrix = np.zeros((240007, capacity))
 		self.KMap = {}
-		self.cache = DoubleLinkedList()
+		self.cache = LRU.DoubleLinkedList()
 		self.hits = 0
 		self.miss = 0
 		self.batchhits = 0
@@ -47,7 +50,8 @@ class LRUPFCache:
 				self.batchmiss += 1
 
 	def check(self, fpVector, md5):
-		assert fp.shape[0] == 1
+		#print fpVector.shape
+		assert fpVector.shape[0] == 1
 		scoreMatrix = computeFPScoreMatrix(fpVector, self.fpMatrix)
 		matchMatrix = scoreMatrix >= 0.9
 
@@ -72,13 +76,66 @@ class LRUPFCache:
 				self.size -= 1
 
 			self.fpMatrix[:, key] = np.transpose(fpVector[0])
-			node = Node(key, md5)
+			node = LRU.Node(key, md5)
 			self.KMap[key] = node
 			self.cache.addFirst(node)
 			self.size += 1
 
-		print self.hits, self.miss, self.hits * 1.0 / (self.hits + self.miss)
+		#print self.hits, self.miss, self.hits * 1.0 / (self.hits + self.miss)
 
 if __name__ == '__main__':
-	a = np.matrix([[1,2], [3,4]])
-	print a[0].shape
+	sMD5ListDirectory = sys.argv[1]
+	sFPDirectoryFile = sys.argv[2]
+	numSize = int(sys.argv[3])
+	cache = LRUPFCache(numSize)	
+
+	top5List = parser.vtFamily.searchTop5VTFamilyFiles(sMD5ListDirectory) 
+
+	assert len(top5List) > 1
+
+	with open(sFPDirectoryFile, 'r') as f:
+		directoryList = f.readlines()
+
+	directoryList = [directory[:-1] for directory in directoryList]
+	
+	
+	md5List = []
+	parser.vtFamily.parseVTTotalMD5(top5List[0], md5List)
+	fpMatrix, md5NewList = parser.FP.batchLoadMD5List(directoryList, md5List)
+
+	#print fpMatrix.shape, len(md5NewList)
+	for i in range(fpMatrix.shape[0]):
+		cache.check(fpMatrix[[i],], md5NewList[i])
+		
+		if (i + 1) % 50 == 0:
+			print 'Hit:', cache.hits, 'Miss:', cache.miss, 'Hit Rate:', cache.hits * 1.0 / (cache.hits + cache.miss)
+		
+
+	index = 1
+	while index < len(top5List):
+		md5List = []
+		parser.vtFamily.parseVTTotalMD5(top5List[index], md5List)
+		fpMatrix, md5NewList = parser.FP.batchLoadMD5List(directoryList, md5List)
+		cache.batchcheck(fpMatrix)
+
+		print 'Batch Hit:', cache.batchhits
+		print 'Batch Miss', cache.batchmiss
+		print 'Batch Hit Rate:', cache.batchhits * 1.0 / (cache.batchhits + cache.batchmiss)
+	
+		for i in range(fpMatrix.shape[0]):
+			cache.check(fpMatrix[[i],], md5NewList[i])
+			if (i + 1) % 50 == 0:
+                        	print 'Hit:', cache.hits, 'Miss:', cache.miss, 'Hit Rate:', cache.hits * 1.0 / (cache.hits + cache.miss)
+
+		index += 1
+		break
+
+	#print 'Batch Hit:', cache.batchhits
+	#print 'Batch Miss', cache.batchmiss
+	#print 'Batch Hit Rate:', cache.batchhits * 1.0 / (cache.batchhits + cache.batchmiss)
+
+	#for top5 in top5List:
+	#	md5List = []
+	#	parser.vtFamily.parseVTTotalMD5(top5, md5List)
+	print 'Hit:', cache.hits, 'Miss:', cache.miss, 'Hit Rate:', cache.hits * 1.0 / (cache.hits + cache.miss)
+

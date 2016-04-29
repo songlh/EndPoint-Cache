@@ -20,6 +20,20 @@ def searchVTFamilyFiles(sDirectory):
 	return vtFamilyFiles
 
 
+def searchTop5VTFamilyFiles(sDirectory):
+	files = [f for f in listdir(sDirectory) if isfile(join(sDirectory, f))]
+        vtFamilyFiles = []
+
+        for f in files:
+                if f.endswith('top5.family.txt'):
+                        vtFamilyFiles.append(f)
+
+        vtFamilyFiles.sort()
+
+        for index in range(len(vtFamilyFiles)):
+                vtFamilyFiles[index] = join(sDirectory, vtFamilyFiles[index])
+
+        return vtFamilyFiles
 
 
 def parseVTFamily(sFileName, listFamily):
@@ -43,6 +57,7 @@ def parseVTFamily(sFileName, listFamily):
 	fVT.close()
 	return
 
+
 def parseVTMD5(sFileName, setFamily, listMF):
 	fVT = open(sFileName, 'r')
 	reVTLine = re.compile(r'([0-9a-f]{32}) ([^\s]+)')
@@ -61,6 +76,24 @@ def parseVTMD5(sFileName, setFamily, listMF):
 
 	fVT.close()
 	return
+
+def parseVTTotalMD5(sFileName, listMD5):
+	fVT = open(sFileName, 'r')
+        reVTLine = re.compile(r'([0-9a-f]{32}) ([^\s]+)')
+
+        while True:
+                line = fVT.readline()
+                if not line:
+                        break
+
+                match = reVTLine.match(line)
+                if match:
+                        listMD5.append(match.group(1))
+
+        fVT.close()
+        return
+
+
 
 if __name__ == '__main__':
 

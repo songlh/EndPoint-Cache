@@ -127,8 +127,8 @@ if __name__ == '__main__':
 			if (i + 1) % 50 == 0:
                         	print 'Hit:', cache.hits, 'Miss:', cache.miss, 'Hit Rate:', cache.hits * 1.0 / (cache.hits + cache.miss)
 
-		index += 1
-		break
+		#index += 1
+		#break
 
 	#print 'Batch Hit:', cache.batchhits
 	#print 'Batch Miss', cache.batchmiss

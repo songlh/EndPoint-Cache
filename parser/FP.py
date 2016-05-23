@@ -1,7 +1,9 @@
 import os
 import sys
 import numpy as np
+import vtFamily
 from os.path import isfile, join
+from sets import Set
 
 def locateFPFile(directoryList, md5):
 	sFPFileName = None
@@ -33,6 +35,28 @@ def loadFPtoNPMatrix(sFileName):
 	fFP.close()
 	return fpMatrix
 
+def loadFPtoSet(sFileName):
+	ffingerprint = open(sFileName, 'r')
+        sFirstLine = ffingerprint.readline()
+        sSecondLine = ffingerprint.readline()
+
+        setFP = Set([])
+        iNum = int(sFirstLine)
+
+        while True:
+               line = ffingerprint.readline()
+               if not line:
+                       break
+               numList = line.split()
+               setFP.add(int(numList[0]))
+
+        ffingerprint.close()
+
+
+        return setFP
+
+
+
 def batchLoadFPtoNPMatrix(listFileName):
 	fpMatrix = np.zeros((len(listFileName), 240007))
 	
@@ -56,3 +80,14 @@ def batchLoadMD5List(directoryList, md5List):
 
 	#print len(listFileName)	
 	return batchLoadFPtoNPMatrix(listFileName), md5NewList
+
+if __name__== '__main__':
+	sVTFamilyDirectory = sys.argv[1]
+	#sDirectoryFile = sys.argv[2]
+
+	top5FileList = vtFamily.searchTop5VTFamilyFiles(sVTFamilyDirectory)
+
+	for top5File in top5FileList:
+		print top5File
+	
+	
